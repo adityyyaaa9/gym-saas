@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gym Membership Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0d0c; --surface:#17191a; --surface-2:#1f2223; --line:#2b2e2f;
+    --accent:#d6ff3f; --accent-dim:#9db82c; --text:#f2f1ec; --muted:#8d9291;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:32px 16px; text-align:center;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 40px);
+  }
+  .eyebrow{font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--accent-dim); margin:0 0 14px;}
+  h1{
+    font-family:'Oswald'; font-weight:700; font-size:clamp(32px,6vw,52px); line-height:1.05;
+    text-transform:uppercase; margin:0 0 16px; max-width:700px;
+  }
+  h1 span{color:var(--accent);}
+  .sub{color:var(--muted); font-size:16px; line-height:1.6; max-width:480px; margin:0 0 48px;}
+  .actions{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:16px;}
+  .btn{
+    font-family:'Oswald'; font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:.04em;
+    padding:14px 28px; border-radius:3px; text-decoration:none; display:inline-block; transition:all .15s ease;
+  }
+  .btn-primary{background:var(--accent); color:#0c0d0c;}
+  .btn-primary:hover{background:#e2ff6b;}
+  .btn-secondary{background:none; border:1px solid var(--line); color:var(--text);}
+  .btn-secondary:hover{border-color:var(--accent); color:var(--accent);}
+  .divider{
+    display:flex; align-items:center; gap:12px; width:100%; max-width:320px; margin:0 auto 20px;
+  }
+  .divider hr{flex:1; border:none; border-top:1px solid var(--line);}
+  .divider span{color:var(--muted); font-size:12px; white-space:nowrap;}
+  .foot{color:var(--muted); font-size:12px; margin-top:40px;}
+</style>
+</head>
+<body>
+  <p class="eyebrow">Membership Management</p>
+  <h1>Run your gym's <span>memberships</span> without the spreadsheet chaos</h1>
+  <p class="sub">Members sign up online, you approve with one tap, and renewals never sneak up on you again.</p>
+
+  <div class="actions">
+    <a href="/member-login.html" class="btn btn-primary">Check My Membership</a>
+    <a href="/login.html" class="btn btn-secondary">Gym Owner Login</a>
+  </div>
+
+  <p class="foot">New member? Ask your gym for their sign-up link.</p>
+</body>
+</html>

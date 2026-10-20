@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0d0c; --surface:#17191a; --surface-2:#1f2223; --line:#2b2e2f;
+    --accent:#d6ff3f; --accent-dim:#9db82c; --text:#f2f1ec; --muted:#8d9291; --error:#ff5c4d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px;
+  }
+  .card{width:100%; max-width:460px; background:var(--surface); border:1px solid var(--line); border-radius:4px; overflow:hidden;}
+  .rack{display:flex; height:6px; width:100%;}
+  .rack span{flex:1; background:var(--surface-2); border-right:1px solid var(--bg);}
+  .rack span:nth-child(-n+3){background:var(--accent);}
+  .content{padding:36px 32px 32px;}
+  .eyebrow{font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-dim); margin:0 0 10px;}
+  h1{font-family:'Oswald'; font-weight:700; font-size:30px; line-height:1.1; text-transform:uppercase; margin:0 0 8px;}
+  h1 span{color:var(--accent);}
+  .sub{color:var(--muted); font-size:14px; margin:0 0 28px; line-height:1.5;}
+  label{display:block; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
+  .field{margin-bottom:18px;}
+  input, select{
+    width:100%; background:var(--surface-2); border:1px solid var(--line); border-radius:3px; color:var(--text);
+    font-size:15px; padding:12px 14px; outline:none; appearance:none; -webkit-appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238d9291' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
+  }
+  input:focus, select:focus{border-color:var(--accent);}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .plan-preview{
+    background:var(--surface-2); border:1px dashed var(--line); border-radius:3px; padding:12px 14px;
+    font-size:13px; color:var(--muted); margin-bottom:22px; display:flex; justify-content:space-between;
+  }
+  .plan-preview strong{color:var(--text); font-weight:600;}
+  button{
+    width:100%; background:var(--accent); color:#0c0d0c; border:none; border-radius:3px;
+    font-family:'Oswald'; font-weight:600; font-size:15px; letter-spacing:.05em; text-transform:uppercase;
+    padding:14px; cursor:pointer;
+  }
+  button:hover{background:#e2ff6b;}
+  button:disabled{opacity:.6; cursor:not-allowed;}
+  .status{margin-top:16px; font-size:13px; text-align:center; min-height:18px;}
+  .status.err{color:var(--error);}
+  .success-view{display:none; text-align:center; padding:20px 0 4px;}
+  .success-view.show{display:block;}
+  .success-view .tick{
+    width:48px; height:48px; border-radius:50%; background:var(--accent); color:#0c0d0c;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:24px; font-weight:700;
+  }
+  .success-view h2{font-family:'Oswald'; text-transform:uppercase; font-size:22px; margin:0 0 8px;}
+  .success-view p{color:var(--muted); font-size:13px; margin:0; line-height:1.6;}
+  .form-view.hide{display:none;}
+  .error-view{display:none; text-align:center; padding:40px 0;}
+  .error-view.show{display:block;}
+  .error-view p{color:var(--muted); font-size:14px;}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="rack"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="content">
+
+      <div class="error-view" id="errorView">
+        <p>This sign-up link isn't valid. Please check the link with your gym.</p>
+      </div>
+
+      <div class="form-view" id="formView">
+        <p class="eyebrow" id="gymLabel">New Member Intake</p>
+        <h1>Lock in <span>your slot</span></h1>
+        <p class="sub">Fill this once. Your gym will confirm your membership shortly.</p>
+
+        <form id="signupForm">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input type="text" id="name" required>
+          </div>
+          <div class="field">
+            <label for="phone">WhatsApp number</label>
+            <input type="tel" id="phone" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile number">
+          </div>
+          <div class="field">
+            <label for="email">Email (optional)</label>
+            <input type="email" id="email">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="plan">Plan</label>
+              <select id="plan" required>
+                <option value="1">1 Month</option>
+                <option value="3">3 Months</option>
+                <option value="6">6 Months</option>
+                <option value="12" selected>12 Months</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="startDate">Start date</label>
+              <input type="date" id="startDate" required>
+            </div>
+          </div>
+          <div class="plan-preview">
+            <span>Membership ends</span>
+            <strong id="expiryPreview">—</strong>
+          </div>
+          <button type="submit" id="submitBtn">Submit sign-up</button>
+          <p class="status" id="status"></p>
+        </form>
+      </div>
+
+      <div class="success-view" id="successView">
+        <div class="tick">✓</div>
+        <h2>Request sent</h2>
+        <p>Your gym will review and confirm your membership. You'll be notified once approved.</p>
+      </div>
+
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ⚠️ Same config as login.html / dashboard.html
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVCYy5_3kfq-ghZD5xtYEPb4T33YokZO4",
+    authDomain: "gym-saas-4e407.firebaseapp.com",
+    projectId: "gym-saas-4e407",
+    storageBucket: "gym-saas-4e407.firebasestorage.app",
+    messagingSenderId: "661426535468",
+    appId: "1:661426535468:web:3d6c9d8523e3ff007ba589"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const params = new URLSearchParams(window.location.search);
+  const gymId = params.get('gym');
+
+  const formView = document.getElementById('formView');
+  const errorView = document.getElementById('errorView');
+  const gymLabel = document.getElementById('gymLabel');
+
+  let validGym = false;
+
+  (async function init() {
+    if (!gymId) { showError(); return; }
+    try {
+      const gymSnap = await getDoc(doc(db, 'gyms', gymId));
+      if (!gymSnap.exists() || gymSnap.data().active === false) { showError(); return; }
+      gymLabel.textContent = `Joining ${gymSnap.data().name}`;
+      validGym = true;
+    } catch (e) {
+      showError();
+    }
+  })();
+
+  function showError() {
+    formView.style.display = 'none';
+    errorView.classList.add('show');
+  }
+
+  const startDateEl = document.getElementById('startDate');
+  const planEl = document.getElementById('plan');
+  const expiryPreview = document.getElementById('expiryPreview');
+  startDateEl.valueAsDate = new Date();
+
+  function computeExpiry(){
+    const start = startDateEl.valueAsDate || new Date();
+    const months = parseInt(planEl.value, 10);
+    const expiry = new Date(start);
+    expiry.setMonth(expiry.getMonth() + months);
+    expiryPreview.textContent = expiry.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    return expiry;
+  }
+  startDateEl.addEventListener('change', computeExpiry);
+  planEl.addEventListener('change', computeExpiry);
+  computeExpiry();
+
+  const form = document.getElementById('signupForm');
+  const statusEl = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = '';
+
+    if (!validGym) { showError(); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+
+    try {
+      const expiry = computeExpiry();
+      await addDoc(collection(db, 'gyms', gymId, 'members'), {
+        name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        plan: parseInt(planEl.value, 10),
+        startDate: startDateEl.value,
+        expiryDate: expiry.toISOString().split('T')[0],
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+
+      document.getElementById('formView').classList.add('hide');
+      document.getElementById('successView').classList.add('show');
+    } catch (err) {
+      statusEl.textContent = 'Something went wrong. Please try again.';
+      statusEl.className = 'status err';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit sign-up';
+    }
+  });
+</script>
+</body>
+</html>

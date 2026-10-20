@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0d0c; --surface:#17191a; --surface-2:#1f2223; --line:#2b2e2f;
+    --accent:#d6ff3f; --accent-dim:#9db82c; --text:#f2f1ec; --muted:#8d9291; --error:#ff5c4d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:36px 32px;}
+  .eyebrow{font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-dim); margin:0 0 8px;}
+  h1{font-family:'Oswald'; font-weight:700; font-size:26px; text-transform:uppercase; margin:0 0 8px;}
+  .sub{color:var(--muted); font-size:13px; margin:0 0 24px; line-height:1.5;}
+  label{display:block; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
+  .field{margin-bottom:16px;}
+  input{width:100%; background:var(--surface-2); border:1px solid var(--line); border-radius:3px; color:var(--text); font-size:15px; padding:12px 14px; outline:none;}
+  input:focus{border-color:var(--accent);}
+  button{width:100%; background:var(--accent); color:#0c0d0c; border:none; border-radius:3px; font-family:'Oswald'; font-weight:600; font-size:15px; text-transform:uppercase; letter-spacing:.05em; padding:13px; cursor:pointer; margin-top:6px;}
+  button:hover{background:#e2ff6b;}
+  button:disabled{opacity:.6; cursor:not-allowed;}
+  .status{margin-top:14px; font-size:13px; text-align:center; min-height:16px; color:var(--error);}
+  .back{display:block; text-align:center; margin-top:20px; font-size:12px; color:var(--muted); text-decoration:none;}
+  .back:hover{color:var(--text);}
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="eyebrow">Member Portal</p>
+    <h1>Check your membership</h1>
+    <p class="sub">Enter your gym code and the WhatsApp number you signed up with.</p>
+    <form id="memberLoginForm">
+      <div class="field">
+        <label for="gymCode">Gym code</label>
+        <input type="text" id="gymCode" required placeholder="Ask your gym for this code">
+      </div>
+      <div class="field">
+        <label for="phone">Your WhatsApp number</label>
+        <input type="tel" id="phone" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit number">
+      </div>
+      <button type="submit" id="loginBtn">View membership</button>
+      <p class="status" id="status"></p>
+    </form>
+    <a href="/" class="back">← Back to home</a>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVCYy5_3kfq-ghZD5xtYEPb4T33YokZO4",
+    authDomain: "gym-saas-4e407.firebaseapp.com",
+    projectId: "gym-saas-4e407",
+    storageBucket: "gym-saas-4e407.firebasestorage.app",
+    messagingSenderId: "661426535468",
+    appId: "1:661426535468:web:3d6c9d8523e3ff007ba589"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const form = document.getElementById('memberLoginForm');
+  const statusEl = document.getElementById('status');
+  const loginBtn = document.getElementById('loginBtn');
+
+  // Pre-fill gym code from URL if present
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('gym')) {
+    document.getElementById('gymCode').value = params.get('gym');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = '';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Looking up…';
+
+    const gymCode = document.getElementById('gymCode').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    try {
+      // Verify gym exists
+      const gymSnap = await getDoc(doc(db, 'gyms', gymCode));
+      if (!gymSnap.exists() || !gymSnap.data().active) {
+        statusEl.textContent = 'Gym code not found. Check with your gym.';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'View membership';
+        return;
+      }
+
+      // Find member by phone
+      const membersRef = collection(db, 'gyms', gymCode, 'members');
+      const snap = await getDocs(query(membersRef, where('phone', '==', phone)));
+
+      if (snap.empty) {
+        statusEl.textContent = 'No membership found for this number.';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'View membership';
+        return;
+      }
+
+      // Store session and redirect
+      const memberData = snap.docs[0].data();
+      sessionStorage.setItem('member', JSON.stringify({
+        ...memberData,
+        gymName: gymSnap.data().name,
+        gymId: gymCode
+      }));
+      window.location.href = 'member-dashboard.html';
+
+    } catch (err) {
+      statusEl.textContent = 'Something went wrong. Please try again.';
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'View membership';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Onboard Gym</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0d0c; --surface:#17191a; --surface-2:#1f2223; --line:#2b2e2f;
+    --accent:#d6ff3f; --accent-dim:#9db82c; --text:#f2f1ec; --muted:#8d9291; --error:#ff5c4d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{width:100%; max-width:440px; background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:36px 32px;}
+  .eyebrow{font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-dim); margin:0 0 8px;}
+  h1{font-family:'Oswald'; font-weight:700; font-size:26px; text-transform:uppercase; margin:0 0 26px;}
+  label{display:block; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
+  .field{margin-bottom:16px;}
+  input{width:100%; background:var(--surface-2); border:1px solid var(--line); border-radius:3px; color:var(--text); font-size:15px; padding:12px 14px; outline:none;}
+  input:focus{border-color:var(--accent);}
+  button{width:100%; background:var(--accent); color:#0c0d0c; border:none; border-radius:3px; font-family:'Oswald'; font-weight:600; font-size:15px; text-transform:uppercase; letter-spacing:.05em; padding:13px; cursor:pointer; margin-top:6px;}
+  button:hover{background:#e2ff6b;}
+  button:disabled{opacity:.6; cursor:not-allowed;}
+  .status{margin-top:14px; font-size:13px; text-align:center; min-height:16px;}
+  .status.err{color:var(--error);}
+  .status.ok{color:var(--accent-dim);}
+  .hidden{display:none;}
+  .result{
+    background:var(--surface-2); border:1px dashed var(--line); border-radius:3px;
+    padding:16px; margin-top:18px; font-size:13px; line-height:1.7; word-break:break-all;
+  }
+  .result strong{color:var(--text); display:block; margin-bottom:2px;}
+  .result .row{margin-bottom:12px;}
+  .result .row:last-child{margin-bottom:0;}
+  .copybtn{
+    background:none; border:1px solid var(--line); color:var(--muted); font-size:11px;
+    padding:4px 10px; border-radius:3px; cursor:pointer; margin-left:8px;
+  }
+  .copybtn:hover{border-color:var(--accent); color:var(--text);}
+</style>
+</head>
+<body>
+
+  <div class="card" id="gateCard">
+    <p class="eyebrow">Admin</p>
+    <h1>Enter admin key</h1>
+    <div class="field">
+      <label for="adminKey">Admin secret</label>
+      <input type="password" id="adminKey" placeholder="Your ADMIN_SECRET">
+    </div>
+    <button id="unlockBtn">Unlock</button>
+    <p class="status err" id="gateStatus"></p>
+  </div>
+
+  <div class="card hidden" id="formCard">
+    <p class="eyebrow">Admin</p>
+    <h1>Onboard a new gym</h1>
+    <form id="onboardForm">
+      <div class="field">
+        <label for="gymName">Gym name</label>
+        <input type="text" id="gymName" required placeholder="e.g. Powerhouse Fitness">
+      </div>
+      <div class="field">
+        <label for="ownerEmail">Owner's login email</label>
+        <input type="email" id="ownerEmail" required placeholder="owner@example.com">
+      </div>
+      <div class="field">
+        <label for="ownerPassword">Owner's login password</label>
+        <input type="text" id="ownerPassword" required placeholder="At least 6 characters">
+      </div>
+      <div class="field">
+        <label for="ownerWhatsapp">Owner's WhatsApp number</label>
+        <input type="tel" id="ownerWhatsapp" required placeholder="e.g. 919876543210">
+      </div>
+      <button type="submit" id="submitBtn">Create gym</button>
+      <p class="status" id="formStatus"></p>
+    </form>
+
+    <div class="result hidden" id="resultBox">
+      <div class="row"><strong>Gym ID</strong><span id="rGymId"></span></div>
+      <div class="row"><strong>Signup link</strong><span id="rSignupLink"></span> <button class="copybtn" id="copyLinkBtn">Copy</button></div>
+      <div class="row"><strong>Owner login</strong>Give the owner their email + password to log in at <span id="rLoginUrl"></span></div>
+    </div>
+  </div>
+
+<script>
+  const gateCard = document.getElementById('gateCard');
+  const formCard = document.getElementById('formCard');
+  const gateStatus = document.getElementById('gateStatus');
+
+  let adminSecret = '';
+
+  document.getElementById('unlockBtn').addEventListener('click', async () => {
+    const val = document.getElementById('adminKey').value.trim();
+    if (!val) {
+      gateStatus.textContent = 'Enter your admin secret.';
+      return;
+    }
+
+    const unlockBtn = document.getElementById('unlockBtn');
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = 'Checking…';
+    gateStatus.textContent = '';
+
+    try {
+      const res = await fetch('/api/verify-admin', {
+        method: 'POST',
+        headers: { 'x-admin-secret': val }
+      });
+
+      if (!res.ok) {
+        gateStatus.textContent = 'Incorrect admin secret.';
+        unlockBtn.disabled = false;
+        unlockBtn.textContent = 'Unlock';
+        return;
+      }
+
+      adminSecret = val;
+      gateCard.classList.add('hidden');
+      formCard.classList.remove('hidden');
+    } catch (err) {
+      gateStatus.textContent = 'Network error. Please try again.';
+      unlockBtn.disabled = false;
+      unlockBtn.textContent = 'Unlock';
+    }
+  });
+
+  const form = document.getElementById('onboardForm');
+  const formStatus = document.getElementById('formStatus');
+  const submitBtn = document.getElementById('submitBtn');
+  const resultBox = document.getElementById('resultBox');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formStatus.textContent = '';
+    resultBox.classList.add('hidden');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating…';
+
+    const payload = {
+      gymName: document.getElementById('gymName').value.trim(),
+      ownerEmail: document.getElementById('ownerEmail').value.trim(),
+      ownerPassword: document.getElementById('ownerPassword').value,
+      ownerWhatsapp: document.getElementById('ownerWhatsapp').value.trim()
+    };
+
+    try {
+      const res = await fetch('/api/create-gym', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': adminSecret
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        formStatus.textContent = data.error || 'Something went wrong.';
+        formStatus.className = 'status err';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create gym';
+        return;
+      }
+
+      const origin = window.location.origin;
+      document.getElementById('rGymId').textContent = data.gymId;
+      document.getElementById('rSignupLink').textContent = origin + data.signupLink;
+      document.getElementById('rLoginUrl').textContent = origin + '/login.html';
+      resultBox.classList.remove('hidden');
+
+      formStatus.textContent = 'Gym created successfully.';
+      formStatus.className = 'status ok';
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create gym';
+
+      document.getElementById('copyLinkBtn').onclick = () => {
+        navigator.clipboard.writeText(origin + data.signupLink);
+        document.getElementById('copyLinkBtn').textContent = 'Copied';
+        setTimeout(() => { document.getElementById('copyLinkBtn').textContent = 'Copy'; }, 1500);
+      };
+    } catch (err) {
+      formStatus.textContent = 'Network error. Please try again.';
+      formStatus.className = 'status err';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create gym';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0d0c; --surface:#17191a; --surface-2:#1f2223; --line:#2b2e2f;
+    --accent:#d6ff3f; --accent-dim:#9db82c; --text:#f2f1ec; --muted:#8d9291; --error:#ff5c4d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:36px 32px;}
+  .eyebrow{font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-dim); margin:0 0 8px;}
+  h1{font-family:'Oswald'; font-weight:700; font-size:26px; text-transform:uppercase; margin:0 0 26px;}
+  label{display:block; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
+  .field{margin-bottom:16px;}
+  input{width:100%; background:var(--surface-2); border:1px solid var(--line); border-radius:3px; color:var(--text); font-size:15px; padding:12px 14px; outline:none;}
+  input:focus{border-color:var(--accent);}
+  button{width:100%; background:var(--accent); color:#0c0d0c; border:none; border-radius:3px; font-family:'Oswald'; font-weight:600; font-size:15px; text-transform:uppercase; letter-spacing:.05em; padding:13px; cursor:pointer; margin-top:6px;}
+  button:hover{background:#e2ff6b;}
+  button:disabled{opacity:.6; cursor:not-allowed;}
+  .status{margin-top:14px; font-size:13px; text-align:center; min-height:16px; color:var(--error);}
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="eyebrow">Gym Owner Portal</p>
+    <h1>Sign in</h1>
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" id="loginBtn">Sign in</button>
+      <p class="status" id="status"></p>
+    </form>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  // ⚠️ Fill in your Firebase project's config (Project Settings → General → Your apps → Web app)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVCYy5_3kfq-ghZD5xtYEPb4T33YokZO4",
+    authDomain: "gym-saas-4e407.firebaseapp.com",
+    projectId: "gym-saas-4e407",
+    storageBucket: "gym-saas-4e407.firebasestorage.app",
+    messagingSenderId: "661426535468",
+    appId: "1:661426535468:web:3d6c9d8523e3ff007ba589"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const form = document.getElementById('loginForm');
+  const statusEl = document.getElementById('status');
+  const loginBtn = document.getElementById('loginBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = '';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Signing in…';
+
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        document.getElementById('email').value.trim(),
+        document.getElementById('password').value
+      );
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      statusEl.textContent = 'Incorrect email or password.';
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign in';
+    }
+  });
+</script>
+</body>
+</html>
